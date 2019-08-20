@@ -150,14 +150,11 @@ class ThemeViews(object):
             except deform.ValidationFailure as e:
                 return dict(form=e.render())
 
-            new_name = appstruct['name']
+            name = appstruct['name']
             theme_id = self.request.db['themes'].insert_one(
-                {'name': new_name}).inserted_id
+                {'name': name}).inserted_id
 
-            theme = self.request.db['themes'].find_one(
-                {'_id': ObjectId(theme_id)})
-
-            url = self.request.route_url('theme_view', uid=theme)
+            url = self.request.route_url('theme_view', uid=theme_id)
             return HTTPFound(url)
 
         return dict(form=form)
@@ -185,11 +182,11 @@ class ThemeViews(object):
                 return dict(video=theme, form=e.render())
 
             new_name = appstruct['name']
-            self.request.db['themes'].update_one(
-                {'_id': theme_id},
-                {'$set': {'name': new_name}}
+            self.request.db['themes'].find_one_and_update(
+                {'_id': ObjectId(theme_id)},
+                {'$set': {'name': new_name}},
             )
-            url = self.request.route_url('theme_view', uid=theme)
+            url = self.request.route_url('theme_view', uid=theme_id)
             return HTTPFound(url)
 
         form = self.theme_form.render(dict(
