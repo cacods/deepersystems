@@ -16,7 +16,6 @@ packaging==19.1
 PasteDeploy==2.0.1
 pathlib2==2.3.4
 peppercorn==0.6
-pkg-resources==0.0.0
 plaster==1.0
 plaster-pastedeploy==0.7
 pluggy==0.12.0
