@@ -8,7 +8,7 @@
 <a href="${request.route_url('themes_view')}">
     Up
 </a> |
-<a href="${request.route_url('theme_edit', uid=theme.uid)}">
+<a href="${request.route_url('theme_edit', uid=theme)}">
     Edit
 </a>
 

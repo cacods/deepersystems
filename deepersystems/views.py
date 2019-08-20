@@ -1,5 +1,6 @@
 import colander
 import deform
+from bson import ObjectId
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
@@ -26,7 +27,8 @@ class VideoViews(object):
 
     @view_config(route_name='videos_view', renderer='videos_view.pt')
     def videos_view(self):
-        videos = DBSession.query(Video).order_by(Video.name)
+        # videos = DBSession.query(Video).order_by(Video.name)
+        videos = self.request.db['videos'].find()
         return dict(title='Videos View', videos=videos)
 
     @view_config(route_name='video_add',
@@ -133,7 +135,7 @@ class ThemeViews(object):
 
     @view_config(route_name='themes_view', renderer='themes_view.pt')
     def themes_view(self):
-        themes = DBSession.query(Theme).order_by(Theme.score.desc())
+        themes = self.request.db['themes'].find()
         return dict(title='Themes View', themes=themes)
 
     @view_config(route_name='theme_add',
@@ -149,27 +151,29 @@ class ThemeViews(object):
                 return dict(form=e.render())
 
             new_name = appstruct['name']
-            DBSession.add(Theme(name=new_name))
+            theme_id = self.request.db['themes'].insert_one(
+                {'name': new_name}).inserted_id
 
-            theme = DBSession.query(Theme).filter_by(name=new_name).one()
-            new_uid = theme.uid
+            theme = self.request.db['themes'].find_one(
+                {'_id': ObjectId(theme_id)})
 
-            url = self.request.route_url('theme_view', uid=new_uid)
+            url = self.request.route_url('theme_view', uid=theme)
             return HTTPFound(url)
 
         return dict(form=form)
 
     @view_config(route_name='theme_view', renderer='theme_view.pt')
     def theme_view(self):
-        uid = int(self.request.matchdict['uid'])
-        theme = DBSession.query(Theme).filter_by(uid=uid).one()
+        theme_id = self.request.matchdict['uid']
+        theme = self.request.db['themes'].find_one({'_id': ObjectId(theme_id)})
         return dict(theme=theme)
 
     @view_config(route_name='theme_edit',
                  renderer='theme_addedit.pt')
     def theme_edit(self):
-        uid = int(self.request.matchdict['uid'])
-        theme = DBSession.query(Theme).filter_by(uid=uid).one()
+        theme_id = self.request.matchdict['uid']
+        theme = self.request.db['themes'].find_one(
+            {'_id': ObjectId(theme_id)})
 
         theme_form = self.theme_form
 
@@ -180,12 +184,16 @@ class ThemeViews(object):
             except deform.ValidationFailure as e:
                 return dict(video=theme, form=e.render())
 
-            theme.name = appstruct['name']
-            url = self.request.route_url('theme_view', uid=uid)
+            new_name = appstruct['name']
+            self.request.db['themes'].update_one(
+                {'_id': theme_id},
+                {'$set': {'name': new_name}}
+            )
+            url = self.request.route_url('theme_view', uid=theme)
             return HTTPFound(url)
 
         form = self.theme_form.render(dict(
-            uid=theme.uid, name=theme.name
+            name=theme['name']
         ))
 
         return dict(theme=theme, form=form)
