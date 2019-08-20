@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Videos: View</title>
+</head>
+<body>
+<h1>Videos</h1>
+<a href="${request.route_url('video_add')}">Add Video</a>&nbsp;&nbsp;
+<a href="${request.route_url('themes_view')}">Themes List</a>
+<ul>
+    <li tal:repeat="video videos">
+        <a href="${request.route_url('video_view', uid=video.uid)}">
+            ${video.name}
+        </a>
+        &nbsp;&nbsp;&nbsp;
+        <a href="${request.route_url('thumbsup_view', uid=video.uid)}">
+            Up
+        </a>&nbsp;&nbsp;
+        ${video.thumbs_up}&nbsp;&nbsp;
+        <a href="${request.route_url('thumbsdown_view', uid=video.uid)}">
+            Down
+        </a>&nbsp;&nbsp;
+        ${video.thumbs_down}
+    </li>
+</ul>
+</body>
+</html>

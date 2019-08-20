@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Themes: View</title>
+</head>
+<body>
+<h1>Themes</h1>
+<a href="${request.route_url('theme_add')}">Add
+    Theme</a>
+<ul>
+    <li tal:repeat="theme themes">
+        <a href="${request.route_url('theme_view', uid=theme.uid)}">
+            ${theme.name}
+        </a>&nbsp;&nbsp;
+        ${theme.score}
+    </li>
+
+</ul>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ThemePage: View</title>
+</head>
+<body>
+<a href="${request.route_url('themes_view')}">
+    Up
+</a> |
+<a href="${request.route_url('theme_edit', uid=theme.uid)}">
+    Edit
+</a>
+
+<h1>${theme.name}</h1>
+</body>
+</html>
