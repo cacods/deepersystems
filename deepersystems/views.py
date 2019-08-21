@@ -7,18 +7,24 @@ from pyramid.view import view_config
 from .models import DBSession, Video, Theme
 
 
-class VideoPage(colander.MappingSchema):
-    name = colander.SchemaNode(colander.String())
-    theme = colander.SchemaNode(colander.String())
-
-
 class VideoViews(object):
     def __init__(self, request):
         self.request = request
 
     @property
     def video_form(self):
-        schema = VideoPage()
+
+        class Schema(colander.Schema):
+            choices = [('', '- Select -')]
+            themes = self.request.db['themes'].find()
+            for theme in themes:
+                choices.append((theme['_id'], theme['name']))
+            name = colander.SchemaNode(colander.String())
+            theme = colander.SchemaNode(
+                colander.String(),
+                widget=deform.widget.SelectWidget(values=choices),
+            )
+        schema = Schema()
         return deform.Form(schema, buttons=('submit',))
 
     @property
@@ -27,7 +33,6 @@ class VideoViews(object):
 
     @view_config(route_name='videos_view', renderer='videos_view.pt')
     def videos_view(self):
-        # videos = DBSession.query(Video).order_by(Video.name)
         videos = self.request.db['videos'].find()
         return dict(title='Videos View', videos=videos)
 
@@ -43,33 +48,40 @@ class VideoViews(object):
             except deform.ValidationFailure as e:
                 return dict(form=e.render())
 
-            new_name = appstruct['name']
-            theme_uid = appstruct['theme']
+            name = appstruct['name']
+            theme_id = appstruct['theme']
             # TODO: Put try/exception here for catch not existent model
             #  instance
-            theme = DBSession.query(Theme).filter_by(uid=theme_uid).one()
-            DBSession.add(Video(name=new_name, theme_uid=theme.uid))
+            theme = self.request.db['themes'].find_one(
+                {'_id': ObjectId(theme_id)})
+            video_id = self.request.db['videos'].insert_one(
+                {'name': name, 'theme_id': theme['_id']}
+            ).inserted_id
 
-            video = DBSession.query(Video).filter_by(name=new_name).one()
-            new_uid = video.uid
-
-            url = self.request.route_url('video_view', uid=new_uid)
+            url = self.request.route_url('video_view', uid=video_id)
             return HTTPFound(url)
 
         return dict(form=form)
 
     @view_config(route_name='video_view', renderer='video_view.pt')
     def video_view(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
-        theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
+        video_id = self.request.matchdict['uid']
+        # video = DBSession.query(Video).filter_by(uid=uid).one()
+        # theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
+        video = self.request.db['videos'].find_one({'_id': ObjectId(video_id)})
+        theme = self.request.db['themes'].find_one(
+            {'_id': ObjectId(video['theme_id'])}
+        )
+
         return dict(video=video, theme=theme)
 
     @view_config(route_name='video_edit',
                  renderer='video_addedit.pt')
     def video_edit(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
+        video_id = self.request.matchdict['uid']
+        video = self.request.db['videos'].find_one(
+            {'_id': ObjectId(video_id)}
+        )
 
         video_form = self.video_form
 
@@ -80,13 +92,17 @@ class VideoViews(object):
             except deform.ValidationFailure as e:
                 return dict(video=video, form=e.render())
 
-            video.name = appstruct['name']
-            video.theme_uid = 1  # TODO: by now fixed theme
-            url = self.request.route_url('video_view', uid=uid)
+            new_name = appstruct['name']
+            new_theme_id = appstruct['theme']
+            self.request.db['videos'].find_one_and_update(
+                {'_id': ObjectId(video_id)},
+                {'$set': {'name': new_name, 'theme_id': ObjectId(new_theme_id)}}
+            )
+            url = self.request.route_url('video_view', uid=video_id)
             return HTTPFound(url)
 
         form = self.video_form.render(dict(
-            uid=video.uid, name=video.name, theme=video.theme_uid
+            name=video['name'], theme=video['theme_id']
         ))
 
         return dict(video=video, form=form)
@@ -170,7 +186,8 @@ class ThemeViews(object):
     def theme_edit(self):
         theme_id = self.request.matchdict['uid']
         theme = self.request.db['themes'].find_one(
-            {'_id': ObjectId(theme_id)})
+            {'_id': ObjectId(theme_id)}
+        )
 
         theme_form = self.theme_form
 
