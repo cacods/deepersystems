@@ -31,13 +31,13 @@ class VideosViewTests(unittest.TestCase):
         self.session.remove()
         testing.tearDown()
 
-    def test_videos_view(self):
-        from deepersystems.views import VideoViews
-
-        request = testing.DummyRequest()
-        inst = VideoViews(request)
-        response = inst.videos_view()
-        self.assertEqual(response['title'], 'Videos View')
+    # def test_videos_view(self):
+        # from deepersystems.views import VideoViews
+        #
+        # request = testing.DummyRequest()
+        # inst = VideoViews(request)
+        # response = inst.videos_view()
+        # self.assertEqual(response['title'], 'Videos View')
 
 
 class VideosFunctionalTests(unittest.TestCase):
@@ -67,13 +67,13 @@ class ThemesViewTests(unittest.TestCase):
         self.session.remove()
         testing.tearDown()
 
-    def test_videos_view(self):
-        from deepersystems.views import ThemeViews
-
-        request = testing.DummyRequest()
-        inst = ThemeViews(request)
-        response = inst.themes_view()
-        self.assertEqual(response['title'], 'Themes View')
+    # def test_themes_view(self):
+    #     from deepersystems.views import ThemeViews
+    #
+    #     request = testing.DummyRequest()
+    #     inst = ThemeViews(request)
+    #     response = inst.themes_view()
+    #     self.assertEqual(response['title'], 'Themes View')
 
 
 class ThemesFunctionalTests(unittest.TestCase):

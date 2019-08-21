@@ -1,14 +1,9 @@
 import colander
 import deform
+import pymongo
+from bson import ObjectId
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
-
-from .models import DBSession, Video, Theme
-
-
-class VideoPage(colander.MappingSchema):
-    name = colander.SchemaNode(colander.String())
-    theme = colander.SchemaNode(colander.String())
 
 
 class VideoViews(object):
@@ -17,7 +12,18 @@ class VideoViews(object):
 
     @property
     def video_form(self):
-        schema = VideoPage()
+
+        class Schema(colander.Schema):
+            choices = [('', '- Select -')]
+            themes = self.request.db['themes'].find()
+            for theme in themes:
+                choices.append((theme['_id'], theme['name']))
+            name = colander.SchemaNode(colander.String())
+            theme = colander.SchemaNode(
+                colander.String(),
+                widget=deform.widget.SelectWidget(values=choices),
+            )
+        schema = Schema()
         return deform.Form(schema, buttons=('submit',))
 
     @property
@@ -26,7 +32,7 @@ class VideoViews(object):
 
     @view_config(route_name='videos_view', renderer='videos_view.pt')
     def videos_view(self):
-        videos = DBSession.query(Video).order_by(Video.name)
+        videos = self.request.db['videos'].find()
         return dict(title='Videos View', videos=videos)
 
     @view_config(route_name='video_add',
@@ -41,33 +47,39 @@ class VideoViews(object):
             except deform.ValidationFailure as e:
                 return dict(form=e.render())
 
-            new_name = appstruct['name']
-            theme_uid = appstruct['theme']
+            name = appstruct['name']
+            theme_id = appstruct['theme']
             # TODO: Put try/exception here for catch not existent model
             #  instance
-            theme = DBSession.query(Theme).filter_by(uid=theme_uid).one()
-            DBSession.add(Video(name=new_name, theme_uid=theme.uid))
+            theme = self.request.db['themes'].find_one(
+                {'_id': ObjectId(theme_id)})
+            video_id = self.request.db['videos'].insert_one(
+                {'name': name, 'theme_id': theme['_id'], 'thumbs_up': 0,
+                 'thumbs_down': 0}
+            ).inserted_id
 
-            video = DBSession.query(Video).filter_by(name=new_name).one()
-            new_uid = video.uid
-
-            url = self.request.route_url('video_view', uid=new_uid)
+            url = self.request.route_url('video_view', uid=video_id)
             return HTTPFound(url)
 
         return dict(form=form)
 
     @view_config(route_name='video_view', renderer='video_view.pt')
     def video_view(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
-        theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
+        video_id = self.request.matchdict['uid']
+        video = self.request.db['videos'].find_one({'_id': ObjectId(video_id)})
+        theme = self.request.db['themes'].find_one(
+            {'_id': ObjectId(video['theme_id'])}
+        )
+
         return dict(video=video, theme=theme)
 
     @view_config(route_name='video_edit',
                  renderer='video_addedit.pt')
     def video_edit(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
+        video_id = self.request.matchdict['uid']
+        video = self.request.db['videos'].find_one(
+            {'_id': ObjectId(video_id)}
+        )
 
         video_form = self.video_form
 
@@ -78,38 +90,56 @@ class VideoViews(object):
             except deform.ValidationFailure as e:
                 return dict(video=video, form=e.render())
 
-            video.name = appstruct['name']
-            video.theme_uid = 1  # TODO: by now fixed theme
-            url = self.request.route_url('video_view', uid=uid)
+            new_name = appstruct['name']
+            new_theme_id = appstruct['theme']
+            self.request.db['videos'].find_one_and_update(
+                {'_id': ObjectId(video_id)},
+                {'$set': {'name': new_name, 'theme_id': ObjectId(new_theme_id)}}
+            )
+            url = self.request.route_url('video_view', uid=video_id)
             return HTTPFound(url)
 
         form = self.video_form.render(dict(
-            uid=video.uid, name=video.name, theme=video.theme_uid
+            name=video['name'], theme=video['theme_id']
         ))
 
         return dict(video=video, form=form)
 
     @view_config(route_name='thumbsup_view')
     def thumbsup_view(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
-        video.thumbs_up += 1
-        theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
-        theme.score = 0
-        for video in theme.videos:
-            theme.score += video.thumbs_up + video.thumbs_down / 2
+        video_id = self.request.matchdict['uid']
+        video = self.request.db['videos'].find_one_and_update(
+            {'_id': ObjectId(video_id)},
+            {'$inc': {'thumbs_up': 1}}
+        )
+        theme = self.request.db['themes'].find_one({'_id': video['theme_id']})
+        score = 0
+        videos = self.request.db['videos'].find({'theme_id': theme['_id']})
+        for video in videos:
+            score += video['thumbs_up'] - video['thumbs_down'] / 2
+        self.request.db['themes'].find_one_and_update(
+            {'_id': ObjectId(theme['_id'])},
+            {'$set': {'score': score}}
+        )
         url = self.request.route_url('videos_view')
         return HTTPFound(url)
 
     @view_config(route_name='thumbsdown_view')
     def thumbsdown_view(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
-        video.thumbs_down += 1
-        theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
-        theme.score = 0
-        for video in theme.videos:
-            theme.score += video.thumbs_up + video.thumbs_down / 2
+        video_id = self.request.matchdict['uid']
+        video = self.request.db['videos'].find_one_and_update(
+            {'_id': ObjectId(video_id)},
+            {'$inc': {'thumbs_down': 1}}
+        )
+        theme = self.request.db['themes'].find_one({'_id': video['theme_id']})
+        score = 0
+        videos = self.request.db['videos'].find({'theme_id': theme['_id']})
+        for video in videos:
+            score += video['thumbs_up'] - video['thumbs_down'] / 2
+        self.request.db['themes'].find_one_and_update(
+            {'_id': ObjectId(theme['_id'])},
+            {'$set': {'score': score}}
+        )
         url = self.request.route_url('videos_view')
         return HTTPFound(url)
 
@@ -133,7 +163,9 @@ class ThemeViews(object):
 
     @view_config(route_name='themes_view', renderer='themes_view.pt')
     def themes_view(self):
-        themes = DBSession.query(Theme).order_by(Theme.score.desc())
+        themes = self.request.db['themes'].find().sort(
+            'score', pymongo.DESCENDING
+        )
         return dict(title='Themes View', themes=themes)
 
     @view_config(route_name='theme_add',
@@ -148,28 +180,28 @@ class ThemeViews(object):
             except deform.ValidationFailure as e:
                 return dict(form=e.render())
 
-            new_name = appstruct['name']
-            DBSession.add(Theme(name=new_name))
+            name = appstruct['name']
+            theme_id = self.request.db['themes'].insert_one(
+                {'name': name, 'score': 0}).inserted_id
 
-            theme = DBSession.query(Theme).filter_by(name=new_name).one()
-            new_uid = theme.uid
-
-            url = self.request.route_url('theme_view', uid=new_uid)
+            url = self.request.route_url('theme_view', uid=theme_id)
             return HTTPFound(url)
 
         return dict(form=form)
 
     @view_config(route_name='theme_view', renderer='theme_view.pt')
     def theme_view(self):
-        uid = int(self.request.matchdict['uid'])
-        theme = DBSession.query(Theme).filter_by(uid=uid).one()
+        theme_id = self.request.matchdict['uid']
+        theme = self.request.db['themes'].find_one({'_id': ObjectId(theme_id)})
         return dict(theme=theme)
 
     @view_config(route_name='theme_edit',
                  renderer='theme_addedit.pt')
     def theme_edit(self):
-        uid = int(self.request.matchdict['uid'])
-        theme = DBSession.query(Theme).filter_by(uid=uid).one()
+        theme_id = self.request.matchdict['uid']
+        theme = self.request.db['themes'].find_one(
+            {'_id': ObjectId(theme_id)}
+        )
 
         theme_form = self.theme_form
 
@@ -180,12 +212,16 @@ class ThemeViews(object):
             except deform.ValidationFailure as e:
                 return dict(video=theme, form=e.render())
 
-            theme.name = appstruct['name']
-            url = self.request.route_url('theme_view', uid=uid)
+            new_name = appstruct['name']
+            self.request.db['themes'].find_one_and_update(
+                {'_id': ObjectId(theme_id)},
+                {'$set': {'name': new_name}},
+            )
+            url = self.request.route_url('theme_view', uid=theme_id)
             return HTTPFound(url)
 
         form = self.theme_form.render(dict(
-            uid=theme.uid, name=theme.name
+            name=theme['name']
         ))
 
         return dict(theme=theme, form=form)

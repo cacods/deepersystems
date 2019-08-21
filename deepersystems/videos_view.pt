@@ -10,15 +10,15 @@
 <a href="${request.route_url('themes_view')}">Themes List</a>
 <ul>
     <li tal:repeat="video videos">
-        <a href="${request.route_url('video_view', uid=video.uid)}">
+        <a href="${request.route_url('video_view', uid=video._id)}">
             ${video.name}
         </a>
         &nbsp;&nbsp;&nbsp;
-        <a href="${request.route_url('thumbsup_view', uid=video.uid)}">
+        <a href="${request.route_url('thumbsup_view', uid=video._id)}">
             Up
         </a>&nbsp;&nbsp;
         ${video.thumbs_up}&nbsp;&nbsp;
-        <a href="${request.route_url('thumbsdown_view', uid=video.uid)}">
+        <a href="${request.route_url('thumbsdown_view', uid=video._id)}">
             Down
         </a>&nbsp;&nbsp;
         ${video.thumbs_down}

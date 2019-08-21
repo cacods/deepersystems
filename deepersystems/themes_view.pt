@@ -10,7 +10,7 @@
     Theme</a>
 <ul>
     <li tal:repeat="theme themes">
-        <a href="${request.route_url('theme_view', uid=theme.uid)}">
+        <a href="${request.route_url('theme_view', uid=theme._id)}">
             ${theme.name}
         </a>&nbsp;&nbsp;
         ${theme.score}

@@ -8,7 +8,7 @@
 <a href="${request.route_url('videos_view')}">
     Up
 </a> |
-<a href="${request.route_url('video_edit', uid=video.uid)}">
+<a href="${request.route_url('video_edit', uid=video._id)}">
     Edit
 </a>
 
