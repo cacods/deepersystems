@@ -1,9 +1,9 @@
-<html metal:use-macro="load: deeper_template.pt">
-<div metal:fill-slot="content">
+<!--?<html metal:use-macro="load: deeper_template.pt">-->
+<!--?<div metal:fill-slot="content">-->
     <h1>Video</h1>
     <p>${structure: form}</p>
     <script type="text/javascript">
         deform.load()
     </script>
-</div>
+<!--?</div>-->
 </html>

@@ -1,5 +1,5 @@
-<html metal:use-macro="load: deeper_template.pt">
-<div metal:fill-slot="content">
+<!--?<html metal:use-macro="load: deeper_template.pt">-->
+<!--?<div metal:fill-slot="content">-->
     <div style="margin-top: 15px">
         <a href="${request.route_url('themes_view')}">
             Up
@@ -10,5 +10,5 @@
 
         <h1>${theme.name}</h1>
     </div>
-</div>
+<!--?</div>-->
 </html>
