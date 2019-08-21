@@ -8,10 +8,8 @@ requires = [
     'pyramid_chameleon',
     'pyramid_tm',
     'pymongo',
-    'sqlalchemy',
     'alembic',
     'waitress',
-    'zope.sqlalchemy',
 ]
 
 # List of dependencies installed via `pip install -e ".[dev]"`
