@@ -1,19 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <p>ABC</p>
+</head>
+<body>
+
+</body>
+</html>
+
 <!--?<html metal:use-macro="load: deeper_template.pt">-->
 <!--?<div metal:fill-slot="content">-->
-    <h1 align="center">Themes</h1>
-    <br>
-    <a href="${request.route_url('theme_add')}">Add
-        Theme</a>&nbsp;&nbsp;&nbsp;
-    <a href="${request.route_url('videos_view')}">Home</a>
-    <br><br>
-    <ul>
-        <li tal:repeat="theme themes">
-            <a href="${request.route_url('theme_view', uid=theme._id)}">
-                    ${theme.name}
-            </a>&nbsp;&nbsp;
-                ${theme.score}
-        </li>
+    <!--?<h1 align="center">Themes</h1>-->
+    <!--?<br>-->
+    <!--?<a href="${request.route_url('theme_add')}">Add-->
+        <!--?Theme</a>&nbsp;&nbsp;&nbsp;-->
+    <!--?<a href="${request.route_url('videos_view')}">Home</a>-->
+    <!--?<br><br>-->
+    <!--?<ul>-->
+        <!--?<li tal:repeat="theme themes">-->
+            <!--?<a href="${request.route_url('theme_view', uid=theme._id)}">-->
+                    <!--?${theme.name}-->
+            <!--?</a>&nbsp;&nbsp;-->
+                <!--?${theme.score}-->
+        <!--?</li>-->
 
-    </ul>
+    <!--?</ul>-->
 <!--?</div>-->
-</html>
+<!--?</html>-->
