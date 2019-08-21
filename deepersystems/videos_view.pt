@@ -1,28 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Videos: View</title>
-</head>
-<body>
-<h1>Videos</h1>
-<a href="${request.route_url('video_add')}">Add Video</a>&nbsp;&nbsp;
-<a href="${request.route_url('themes_view')}">Themes List</a>
-<ul>
-    <li tal:repeat="video videos">
-        <a href="${request.route_url('video_view', uid=video._id)}">
-            ${video.name}
-        </a>
-        &nbsp;&nbsp;&nbsp;
-        <a href="${request.route_url('thumbsup_view', uid=video._id)}">
-            Up
-        </a>&nbsp;&nbsp;
-        ${video.thumbs_up}&nbsp;&nbsp;
-        <a href="${request.route_url('thumbsdown_view', uid=video._id)}">
-            Down
-        </a>&nbsp;&nbsp;
-        ${video.thumbs_down}
-    </li>
-</ul>
-</body>
+<html metal:use-macro="load: deeper_template.pt">
+<div metal:fill-slot="content">
+    <h1 align="center">Videos</h1>
+    <br>
+    <a href="${request.route_url('video_add')}">Add Video</a>&nbsp;&nbsp;
+    <a href="${request.route_url('themes_view')}">Themes List</a>
+    <br><br>
+    <ul>
+        <li tal:repeat="video videos">
+            <a href="${request.route_url('video_view', uid=video._id)}">
+                    ${video.name}
+            </a>
+            &nbsp;&nbsp;&nbsp;
+            <a href="${request.route_url('thumbsup_view', uid=video._id)}">
+                <span class="glyphicon glyphicon-thumbs-up"></span>
+            </a>&nbsp;&nbsp;
+                ${video.thumbs_up}&nbsp;&nbsp;
+            <a href="${request.route_url('thumbsdown_view', uid=video._id)}">
+                <span class="glyphicon glyphicon-thumbs-down"></span>
+
+            </a>&nbsp;&nbsp;
+                ${video.thumbs_down}
+        </li>
+    </ul>
+</div>
 </html>

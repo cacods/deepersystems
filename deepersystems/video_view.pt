@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>VideoPage: View</title>
-</head>
-<body>
-<a href="${request.route_url('videos_view')}">
-    Up
-</a> |
-<a href="${request.route_url('video_edit', uid=video._id)}">
-    Edit
-</a>
+<html metal:use-macro="load: deeper_template.pt">
+<div metal:fill-slot="content">
+    <div style="margin-top: 15px">
+        <a href="${request.route_url('videos_view')}">
+            Up
+        </a> |
+        <a href="${request.route_url('video_edit', uid=video._id)}">
+            Edit
+        </a>
 
-<h1>${video.name}</h1>
-<p>${theme.name}</p>
-</body>
+        <h1>${video.name}</h1>
+        <p>${theme.name}</p>
+    </div>
+</div>
 </html>
