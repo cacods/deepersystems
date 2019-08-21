@@ -1,5 +1,5 @@
-<html metal:use-macro="load: deeper_template.pt">
-<div metal:fill-slot="content">
+<!--?<html metal:use-macro="load: deeper_template.pt">-->
+<!--?<div metal:fill-slot="content">-->
     <h1 align="center">Themes</h1>
     <br>
     <a href="${request.route_url('theme_add')}">Add
@@ -15,5 +15,5 @@
         </li>
 
     </ul>
-</div>
+<!--?</div>-->
 </html>
