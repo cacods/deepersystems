@@ -4,6 +4,7 @@ attrs==19.1.0
 beautifulsoup4==4.8.0
 Chameleon==3.6.2
 colander==1.7.0
+-e git+https://github.com/caco13/deepersystems.git@37025bae6dad0b9b2058405ea4a07e21c5b723f1#egg=deepersystems
 deform==2.0.7
 hupper==1.8.1
 importlib-metadata==0.19
@@ -15,7 +16,6 @@ packaging==19.1
 PasteDeploy==2.0.1
 pathlib2==2.3.4
 peppercorn==0.6
-pkg-resources==0.0.0
 plaster==1.0
 plaster-pastedeploy==0.7
 pluggy==0.12.0
