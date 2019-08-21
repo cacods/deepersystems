@@ -6,10 +6,32 @@
             content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <p>ABC</p>
 </head>
 <body>
+<div>
+    <h1 align="center">Videos</h1>
+    <br>
+    <a href="${request.route_url('video_add')}">Add Video</a>&nbsp;&nbsp;
+    <a href="${request.route_url('themes_view')}">Themes List</a>
+    <br><br>
+    <ul>
+        <li tal:repeat="video videos">
+            <a href="${request.route_url('video_view', uid=video._id)}">
+                    ${video.name}
+            </a>
+            &nbsp;&nbsp;&nbsp;
+            <a href="${request.route_url('thumbsup_view', uid=video._id)}">
+                <span class="glyphicon glyphicon-thumbs-up"></span>
+            </a>&nbsp;&nbsp;
+                ${video.thumbs_up}&nbsp;&nbsp;
+            <a href="${request.route_url('thumbsdown_view', uid=video._id)}">
+                <span class="glyphicon glyphicon-thumbs-down"></span>
 
+            </a>&nbsp;&nbsp;
+                ${video.thumbs_down}
+        </li>
+    </ul>
+</div>
 </body>
 </html>
 
