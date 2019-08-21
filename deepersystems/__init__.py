@@ -4,8 +4,6 @@ from gridfs import GridFS
 from pymongo import MongoClient
 from pyramid.config import Configurator
 
-from .models import DBSession, Base
-
 
 def main(global_config, **settings):
     config = Configurator(settings=settings,

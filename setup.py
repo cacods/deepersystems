@@ -8,7 +8,6 @@ requires = [
     'pyramid_chameleon',
     'pyramid_tm',
     'pymongo',
-    'alembic',
     'waitress',
 ]
 
