@@ -3,7 +3,6 @@ attrs==19.1.0
 beautifulsoup4==4.8.0
 Chameleon==3.6.2
 colander==1.7.0
--e git+https://github.com/caco13/deepersystems.git@6863d8f87fc1193a4fc6c6e2bdcaba84c589eafa#egg=deepersystems
 deform==2.0.7
 hupper==1.8.1
 importlib-metadata==0.19
