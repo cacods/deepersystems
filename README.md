@@ -11,7 +11,7 @@
 
 1. _cd_ into deepersystems directory
 
-1. Create a virtualenv and activate a virtualenv
+1. Create and activate a virtualenv
  
     ```
     $ python3 -m venv env
