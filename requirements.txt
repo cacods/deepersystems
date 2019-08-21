@@ -1,10 +1,9 @@
-alembic==1.0.11
 atomicwrites==1.3.0
 attrs==19.1.0
 beautifulsoup4==4.8.0
 Chameleon==3.6.2
 colander==1.7.0
--e git+https://github.com/caco13/deepersystems.git@e078a2bd2338523ca33ae50f1d13d25beb3980c1#egg=deepersystems
+-e git+https://github.com/caco13/deepersystems.git@a1439120e8f295e079b0e5ff26bedaa8a6b771ef#egg=deepersystems
 deform==2.0.7
 hupper==1.8.1
 importlib-metadata==0.19
