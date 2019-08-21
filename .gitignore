@@ -22,6 +22,3 @@ test
 .idea
 .pytest_cache/
 deepersystems/__pycache__/
-sqldeepersystems.sqlite
-alembic/__pycache__/
-alembic/versions/__pycache__/
