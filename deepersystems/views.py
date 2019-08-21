@@ -1,10 +1,9 @@
 import colander
 import deform
+import pymongo
 from bson import ObjectId
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
-
-from .models import DBSession, Video, Theme
 
 
 class VideoViews(object):
@@ -55,7 +54,8 @@ class VideoViews(object):
             theme = self.request.db['themes'].find_one(
                 {'_id': ObjectId(theme_id)})
             video_id = self.request.db['videos'].insert_one(
-                {'name': name, 'theme_id': theme['_id']}
+                {'name': name, 'theme_id': theme['_id'], 'thumbs_up': 0,
+                 'thumbs_down': 0}
             ).inserted_id
 
             url = self.request.route_url('video_view', uid=video_id)
@@ -66,8 +66,6 @@ class VideoViews(object):
     @view_config(route_name='video_view', renderer='video_view.pt')
     def video_view(self):
         video_id = self.request.matchdict['uid']
-        # video = DBSession.query(Video).filter_by(uid=uid).one()
-        # theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
         video = self.request.db['videos'].find_one({'_id': ObjectId(video_id)})
         theme = self.request.db['themes'].find_one(
             {'_id': ObjectId(video['theme_id'])}
@@ -109,25 +107,39 @@ class VideoViews(object):
 
     @view_config(route_name='thumbsup_view')
     def thumbsup_view(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
-        video.thumbs_up += 1
-        theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
-        theme.score = 0
-        for video in theme.videos:
-            theme.score += video.thumbs_up + video.thumbs_down / 2
+        video_id = self.request.matchdict['uid']
+        video = self.request.db['videos'].find_one_and_update(
+            {'_id': ObjectId(video_id)},
+            {'$inc': {'thumbs_up': 1}}
+        )
+        theme = self.request.db['themes'].find_one({'_id': video['theme_id']})
+        score = 0
+        videos = self.request.db['videos'].find({'theme_id': theme['_id']})
+        for video in videos:
+            score += video['thumbs_up'] - video['thumbs_down'] / 2
+        self.request.db['themes'].find_one_and_update(
+            {'_id': ObjectId(theme['_id'])},
+            {'$set': {'score': score}}
+        )
         url = self.request.route_url('videos_view')
         return HTTPFound(url)
 
     @view_config(route_name='thumbsdown_view')
     def thumbsdown_view(self):
-        uid = int(self.request.matchdict['uid'])
-        video = DBSession.query(Video).filter_by(uid=uid).one()
-        video.thumbs_down += 1
-        theme = DBSession.query(Theme).filter_by(uid=video.theme_uid).one()
-        theme.score = 0
-        for video in theme.videos:
-            theme.score += video.thumbs_up + video.thumbs_down / 2
+        video_id = self.request.matchdict['uid']
+        video = self.request.db['videos'].find_one_and_update(
+            {'_id': ObjectId(video_id)},
+            {'$inc': {'thumbs_down': 1}}
+        )
+        theme = self.request.db['themes'].find_one({'_id': video['theme_id']})
+        score = 0
+        videos = self.request.db['videos'].find({'theme_id': theme['_id']})
+        for video in videos:
+            score += video['thumbs_up'] - video['thumbs_down'] / 2
+        self.request.db['themes'].find_one_and_update(
+            {'_id': ObjectId(theme['_id'])},
+            {'$set': {'score': score}}
+        )
         url = self.request.route_url('videos_view')
         return HTTPFound(url)
 
@@ -151,7 +163,9 @@ class ThemeViews(object):
 
     @view_config(route_name='themes_view', renderer='themes_view.pt')
     def themes_view(self):
-        themes = self.request.db['themes'].find()
+        themes = self.request.db['themes'].find().sort(
+            'score', pymongo.DESCENDING
+        )
         return dict(title='Themes View', themes=themes)
 
     @view_config(route_name='theme_add',
@@ -168,7 +182,7 @@ class ThemeViews(object):
 
             name = appstruct['name']
             theme_id = self.request.db['themes'].insert_one(
-                {'name': name}).inserted_id
+                {'name': name, 'score': 0}).inserted_id
 
             url = self.request.route_url('theme_view', uid=theme_id)
             return HTTPFound(url)

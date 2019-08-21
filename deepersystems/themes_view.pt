@@ -13,7 +13,7 @@
         <a href="${request.route_url('theme_view', uid=theme._id)}">
             ${theme.name}
         </a>&nbsp;&nbsp;
-        <!--?${theme.score}-->
+        ${theme.score}
     </li>
 
 </ul>
