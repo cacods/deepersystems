@@ -6,8 +6,7 @@ from pyramid.config import Configurator
 
 
 def main(global_config, **settings):
-    config = Configurator(settings=settings,
-                          root_factory='deepersystems.models.Root')
+    config = Configurator(settings=settings)
 
     db_url = urlparse(settings['mongo_uri'])
     config.registry.db = MongoClient(
